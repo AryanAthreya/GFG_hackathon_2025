@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Authentication</title>
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        ion-icon {
+            color: white;
+            position: absolute;
+            right: 8px;
+            top: 20px;
+            font-size: 1.2em;
+        }
+
+        section {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url(bg.jpg) no-repeat;
+            background-size: cover;
+            animation: bg 5s linear infinite;
+        }
+
+        @keyframes bg {
+            to {
+                filter: hue-rotate(360deg);
+            }
+        }
+
+        .title {
+            color: white;
+            text-align: center;
+            font-weight: 500;
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+
+        .auth-container {
+            position: relative;
+            background: transparent;
+            border: 2px solid rgb(164, 156, 156);
+            width: 400px;
+            padding: 20px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(15px);
+            box-shadow: 0px 0px 15px rgba(0, 255, 255, 0.3);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .auth-container:hover {
+            transform: scale(1.05);
+            box-shadow: 0px 0px 25px rgba(0, 255, 255, 0.6);
+        }
+
+        .tabs {
+            display: flex;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .tab.active {
+            border-bottom: 2px solid #00bfff;
+            color: #00bfff;
+        }
+
+        .inputbox {
+            position: relative;
+            width: 100%;
+            margin: 20px 0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .inputbox label {
+            position: absolute;
+            top: 50%;
+            left: 5px;
+            transform: translateY(-50%);
+            font-size: 1em;
+            color: white;
+            pointer-events: none;
+            transition: all .3s ease-in-out;
+        }
+
+        .inputbox input, .inputbox select {
+            width: 100%;
+            height: 50px;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 1em;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .inputbox select {
+            appearance: none;
+            padding-left: 5px;
+        }
+
+        .inputbox select option {
+            background-color: #333;
+            color: white;
+        }
+
+        .inputbox input:focus ~ label,
+        .inputbox input:valid ~ label,
+        .inputbox select:focus ~ label,
+        .inputbox select:valid ~ label {
+            top: -5px;
+            font-size: 0.85em;
+            color: #00bfff;
+        }
+
+        .form-content {
+            display: none;
+            width: 100%;
+        }
+
+        .form-content.active {
+            display: block;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background-color: white;
+            font-size: 1em;
+            color: black;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background-color: lightgray;
+            color: white;
+            box-shadow: 0px 4px 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: white;
+        }
+
+        .divider:before, .divider:after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .divider span {
+            padding: 0 10px;
+        }
+
+        .google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background-color: transparent;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .google-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 0px 4px 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .error {
+            color: #ff6b6b;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .success {
+            color: #00ff88;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        #user-info {
+            display: none;
+            text-align: center;
+            color: white;
+        }
+
+        #sign-out {
+            margin-top: 15px;
+            background-color: transparent;
+            border: 1px solid white;
+            color: white;
+        }
+
+        #sign-out:hover {
+            background-color: rgba(255, 0, 0, 0.3);
+            border-color: #ff6b6b;
+        }
+
+        @media only screen and (max-width: 400px) {
+            .auth-container {
+                width: 100%;
+                height: 100%;
+                border-radius: 0;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section>
+        <div class="auth-container" id="auth-container">
+            <h2 class="title">Shop Management </h2>
+            <div class="tabs" id="auth-buttons">
+                <div class="tab active" id="login-tab" onclick="showLogin()">Login</div>
+                <div class="tab" id="signup-tab" onclick="showSignup()">Sign Up</div>
+            </div>
+            
+            <!-- Login Form -->
+            <div class="form-content active" id="login-form">
+                <div class="inputbox">
+                    <span class="icon"><ion-icon name="mail-outline"></ion-icon></span>
+                    <input type="email" id="login-email" required>
+                    <label for="login-email">Email</label>
+                </div>
+                <div class="inputbox">
+                    <span class="icon"><ion-icon name="lock-closed-outline"></ion-icon></span>
+                    <input type="password" id="login-password" required>
+                    <label for="login-password">Password</label>
+                </div>
+                <button onclick="login()" class="btn">Login</button>
+                
+                <div class="divider"><span>OR</span></div>
+                
+                <button class="google-btn" id="google-login">
+                    <svg class="google-icon" width="18" height="18" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                    </svg>
+                    Continue with Google
+                </button>
+            </div>
+            
+            <!-- Sign Up Form -->
+            <div class="form-content" id="signup-form">
+                <div class="inputbox">
+                    <span class="icon"><ion-icon name="person-outline"></ion-icon></span>
+                    <input type="text" id="signup-username" required>
+                    <label for="signup-username">Username</label>
+                </div>
+                <div class="inputbox">
+                    <span class="icon"><ion-icon name="mail-outline"></ion-icon></span>
+                    <input type="email" id="signup-email" required>
+                    <label for="signup-email">Email</label>
+                </div>
+                <div class="inputbox">
+                    <span class="icon"><ion-icon name="lock-closed-outline"></ion-icon></span>
+                    <input type="password" id="signup-password" required>
+                    <label for="signup-password">Password</label>
+                </div>
+                <div class="inputbox">
+                    <span class="icon"><ion-icon name="lock-closed-outline"></ion-icon></span>
+                    <input type="password" id="signup-confirm-password" required>
+                    <label for="signup-confirm-password">Confirm Password</label>
+                </div>
+                <div class="inputbox">
+                    <span class="icon"><ion-icon name="people-outline"></ion-icon></span>
+                    <select id="signup-role" required>
+                        <option value="" disabled selected></option>
+                        <option value="admin">Admin</option>
+                        <option value="employee">Employee</option>
+                    </select>
+                    <label for="signup-role">Role</label>
+                </div>
+                <button onclick="signup()" class="btn">Sign Up</button>
+            </div>
+            
+            <div id="message" class="error"></div>
+        </div>
+        
+        <!-- User Info (displayed after login) -->
+        <div class="auth-container" id="user-info">
+            <h1 class="title">WELCOME!</h1>
+            <p id="user-email"></p>
+            <button id="sign-out" class="btn">Sign Out</button>
+        </div>
+    </section>
+
+    <!-- Firebase SDK -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+    <script src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyDY4ZihCcKIjDpnIAz2F_tO_v5W4zJpNUw",
+          authDomain: "authentication01-42ccd.firebaseapp.com",
+          databaseURL: "https://authentication01-42ccd-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "authentication01-42ccd",
+          storageBucket: "authentication01-42ccd.appspot.com",
+          messagingSenderId: "54199882453",
+          appId: "1:54199882453:web:8e4ad9a838b45a27b7c85c",
+          measurementId: "G-XFM79B10NC"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+        
+        const message = document.getElementById('message');
+
+        // On page load, check if user is already logged in
+        auth.onAuthStateChanged(user => {
+          if (user) {
+            db.ref('users/' + user.uid).once('value')
+              .then(snapshot => {
+                const data = snapshot.val();
+                if (data && data.role === "admin") {
+                  window.location.href = "admin.html";
+                } else if (data && data.role === "employee") {
+                  window.location.href = "employee.html";
+                } else {
+                  message.textContent = "No role assigned. Please sign up again.";
+                  message.className = "error";
+                  auth.signOut();
+                }
+              })
+              .catch(err => {
+                message.textContent = "Error checking role: " + err.message;
+                message.className = "error";
+                auth.signOut();
+              });
+          } else {
+            document.getElementById('auth-buttons').style.display = 'flex';
+          }
+        });
+
+        function showLogin() {
+          document.getElementById('login-form').classList.add('active');
+          document.getElementById('signup-form').classList.remove('active');
+          document.getElementById('login-tab').classList.add('active');
+          document.getElementById('signup-tab').classList.remove('active');
+          message.textContent = "";
+        }
+
+        function showSignup() {
+          document.getElementById('login-form').classList.remove('active');
+          document.getElementById('signup-form').classList.add('active');
+          document.getElementById('login-tab').classList.remove('active');
+          document.getElementById('signup-tab').classList.add('active');
+          message.textContent = "";
+        }
+
+        function login() {
+          const email = document.getElementById('login-email').value;
+          const password = document.getElementById('login-password').value;
+
+          if (!email || !password) {
+            message.textContent = "Please enter email and password.";
+            message.className = "error";
+            return;
+          }
+
+          auth.signInWithEmailAndPassword(email, password)
+            .then(userCredential => {
+              const user = userCredential.user;
+              return db.ref('users/' + user.uid).once('value');
+            })
+            .then(snapshot => {
+              const data = snapshot.val();
+              if (data && data.role === "admin") {
+                message.textContent = "Login successful! Redirecting to Admin...";
+                message.className = "success";
+                setTimeout(() => window.location.href = "admin.html", 1000);
+              } else if (data && data.role === "employee") {
+                message.textContent = "Login successful! Redirecting to Employee...";
+                message.className = "success";
+                setTimeout(() => window.location.href = "employee.html", 1000);
+              } else {
+                message.textContent = "Role not recognized.";
+                message.className = "error";
+                auth.signOut();
+              }
+            })
+            .catch(error => {
+              message.textContent = error.message;
+              message.className = "error";
+            });
+        }
+
+        function signup() {
+          const username = document.getElementById('signup-username').value;
+          const email = document.getElementById('signup-email').value;
+          const password = document.getElementById('signup-password').value;
+          const confirmPassword = document.getElementById('signup-confirm-password').value;
+          const role = document.getElementById('signup-role').value;
+
+          if (!username || !email || !password || !confirmPassword || !role) {
+            message.textContent = "Please fill all fields.";
+            message.className = "error";
+            return;
+          }
+
+          if (password !== confirmPassword) {
+            message.textContent = "Passwords do not match.";
+            message.className = "error";
+            return;
+          }
+
+          auth.createUserWithEmailAndPassword(email, password)
+            .then(userCredential => {
+              const user = userCredential.user;
+              return db.ref('users/' + user.uid).set({
+                username: username,
+                email: email,
+                role: role
+              });
+            })
+            .then(() => {
+              message.textContent = "Signup successful! Redirecting...";
+              message.className = "success";
+              setTimeout(() => location.reload(), 1000); // Reload to trigger onAuthStateChanged
+            })
+            .catch(error => {
+              message.textContent = error.message;
+              message.className = "error";
+            });
+        }
+
+        // Google Sign In
+        document.getElementById('google-login').addEventListener('click', () => {
+          const provider = new firebase.auth.GoogleAuthProvider();
+          
+          auth.signInWithPopup(provider)
+            .then(result => {
+              const user = result.user;
+              // Check if user exists in database
+              return db.ref('users/' + user.uid).once('value').then(snapshot => {
+                if (snapshot.exists()) {
+                  // User exists, proceed with login
+                  return snapshot;
+                } else {
+                  // User doesn't exist, ask them to sign up manually
+                  throw new Error("Please sign up with email to set your role.");
+                }
+              });
+            })
+            .then(snapshot => {
+              const data = snapshot.val();
+              if (data && data.role === "admin") {
+                message.textContent = "Login successful! Redirecting to Admin...";
+                message.className = "success";
+                setTimeout(() => window.location.href = "admin.html", 1000);
+              } else if (data && data.role === "employee") {
+                message.textContent = "Login successful! Redirecting to Employee...";
+                message.className = "success";
+                setTimeout(() => window.location.href = "employee.html", 1000);
+              } else {
+                message.textContent = "Role not recognized.";
+                message.className = "error";
+                auth.signOut();
+              }
+            })
+            .catch(error => {
+              message.textContent = error.message;
+              message.className = "error";
+              // Sign out if there was an error
+              auth.signOut();
+            });
+        });
+    </script>
+</body>
+</html>
+<!-- still no admin control as master controler  (to do later)-->
